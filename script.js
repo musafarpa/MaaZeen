@@ -425,6 +425,157 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('%cNurturing New Mothers with Ancient Wisdom', 'font-size: 14px; color: #6b5b4f;');
 
     // ===================================
+    // Hero Carousel with Auto-Rotation
+    // ===================================
+    const heroCarousel = document.querySelector('.hero.hero-carousel');
+
+    if (heroCarousel) {
+        const slides = heroCarousel.querySelectorAll('.hero-slide');
+        const dots = heroCarousel.querySelectorAll('.carousel-dot');
+        const prevBtn = heroCarousel.querySelector('.carousel-prev');
+        const nextBtn = heroCarousel.querySelector('.carousel-next');
+
+        let currentSlide = 0;
+        let autoRotateInterval;
+        const autoRotateDelay = 3000; // 3 seconds between slides
+
+        // Function to show a specific slide
+        function showSlide(index) {
+            // Handle wrap-around
+            if (index >= slides.length) index = 0;
+            if (index < 0) index = slides.length - 1;
+
+            // Update current slide index
+            currentSlide = index;
+
+            // Update slides
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                if (i === currentSlide) {
+                    slide.classList.add('active');
+                }
+            });
+
+            // Update dots
+            dots.forEach((dot, i) => {
+                dot.classList.remove('active');
+                if (i === currentSlide) {
+                    dot.classList.add('active');
+                }
+            });
+        }
+
+        // Next slide function
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        // Previous slide function
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Start auto-rotation
+        function startAutoRotate() {
+            stopAutoRotate(); // Clear any existing interval
+            autoRotateInterval = setInterval(nextSlide, autoRotateDelay);
+        }
+
+        // Stop auto-rotation
+        function stopAutoRotate() {
+            if (autoRotateInterval) {
+                clearInterval(autoRotateInterval);
+            }
+        }
+
+        // Event listeners for dots
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                showSlide(index);
+                startAutoRotate(); // Reset timer after manual navigation
+            });
+        });
+
+        // Event listeners for arrows
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                prevSlide();
+                startAutoRotate(); // Reset timer after manual navigation
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                nextSlide();
+                startAutoRotate(); // Reset timer after manual navigation
+            });
+        }
+
+        // Pause auto-rotation on hover
+        heroCarousel.addEventListener('mouseenter', stopAutoRotate);
+        heroCarousel.addEventListener('mouseleave', startAutoRotate);
+
+        // Touch/swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        heroCarousel.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            stopAutoRotate();
+        }, { passive: true });
+
+        heroCarousel.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+            startAutoRotate();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swiped left - go to next slide
+                    nextSlide();
+                } else {
+                    // Swiped right - go to previous slide
+                    prevSlide();
+                }
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            // Only handle keyboard when hero is visible
+            const heroRect = heroCarousel.getBoundingClientRect();
+            const isVisible = heroRect.top < window.innerHeight && heroRect.bottom > 0;
+
+            if (isVisible) {
+                if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                    startAutoRotate();
+                } else if (e.key === 'ArrowRight') {
+                    nextSlide();
+                    startAutoRotate();
+                }
+            }
+        });
+
+        // Start auto-rotation on page load
+        startAutoRotate();
+
+        // Pause when tab is not visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAutoRotate();
+            } else {
+                startAutoRotate();
+            }
+        });
+    }
+
+    // ===================================
     // Enhanced Scroll Reveal Animations
     // ===================================
     const scrollRevealElements = document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-right, .scroll-reveal-scale');
